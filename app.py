@@ -1,6 +1,9 @@
+from io import StringIO
 import streamlit as st
 import spacy
 from annotated_text import annotated_text
+
+#from keras.models import load_model
 
 st.set_page_config(page_title="Document Anonymizer", page_icon="🔒")
 
@@ -25,8 +28,8 @@ st.header("")
 
 @st.cache(show_spinner=False, allow_output_mutation=True, suppress_st_warning=True)
 def load_models():
-    french_model = spacy.load("./models/fr/")
-    english_model = spacy.load("./models/en/")
+    french_model = spacy.load("fr_core_news_sm")
+    english_model = spacy.load("en_core_web_sm")
     models = {"en": english_model, "fr": french_model}
     return models
 
@@ -55,23 +58,22 @@ def process_text(doc, selected_entities, anonymize=False):
     return tokens
 
 
-models = load_models()
 
-# selected_language = st.sidebar.selectbox("Select a language", options=["en", "fr"])
-selected_language = "en"
+
+
 
 # text_input = st.text_area("TEST - Type a text to anonymize")
 
-text_input = st.text_area(
-    "Type a text to anonymize",
-    height=400,
-    value="""
-Miles Dewey Davis (May 26, 1926 – September 28, 1991) was an American trumpeter, bandleader, and composer. 
+# text_input = st.text_area(
+#     "Type a text to anonymize",
+#     height=400,
+#     value="""
+# Miles Dewey Davis (May 26, 1926 – September 28, 1991) was an American trumpeter, bandleader, and composer. 
 
-Born in Alton, Illinois, and raised in East St. Louis, Davis left to study at Juilliard in New York City, before dropping out and making his professional debut as a member of saxophonist Charlie Parker's bebop quintet from 1944 to 1948. Shortly after, he recorded the Birth of the Cool sessions for Capitol Records, which were instrumental to the development of cool jazz. In the early 1950s.
+# Born in Alton, Illinois, and raised in East St. Louis, Davis left to study at Juilliard in New York City, before dropping out and making his professional debut as a member of saxophonist Charlie Parker's bebop quintet from 1944 to 1948. Shortly after, he recorded the Birth of the Cool sessions for Capitol Records, which were instrumental to the development of cool jazz. In the early 1950s.
 
-""",
-)
+# """,
+# )
 
 selected_entities = st.multiselect(
     "Select the entities you want to detect",
@@ -79,12 +81,27 @@ selected_entities = st.multiselect(
     default=["LOC", "PER", "ORG"],
     help="Select the entities you want to detect",
 )
+# selected_language = st.sidebar.selectbox("Select a language", options=["en", "fr"])
+selected_language = "en"
+models = load_models()
 selected_model = models[selected_language]
 
-# uploaded_file = st.file_uploader("or Upload a file", type=["doc", "docx", "pdf", "txt"])
-# if uploaded_file is not None:
-#     text_input = uploaded_file.getvalue()
-#     text_input = text_input.decode("utf-8")
+
+uploaded_file = st.file_uploader("or Upload a file", type=["doc", "docx", "pdf", "txt"])
+# print (chardet.detect(uploaded_file))
+if uploaded_file is not None:
+    text_input = uploaded_file.getvalue()
+    text_input = text_input.decode('utf8')
+    # encoding = chardet.detect(text_input)
+    # text_input=encoding['encoding']
+    print ("--------------------")
+    print ("TEXT is:")
+    print (text_input)
+    print ("--------------------")
+   
+
+else:
+    text_input=""
 
 anonymize = st.checkbox("Anonymize")
 doc = selected_model(text_input)
